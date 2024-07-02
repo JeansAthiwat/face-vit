@@ -17,10 +17,6 @@ import time
 from IPython import embed
 import cv2
 from .emd import emd_similarity
-from facenet_pytorch import MTCNN
-
-# Initialize the MTCNN model
-mtcnn = MTCNN(image_size=160, margin=0, thresholds=[0.6, 0.7, 0.7], keep_all=True)
 
 
 def get_time():
@@ -261,7 +257,6 @@ def perform_val_merge_test_resnet(
 
 
 def process_img(img_path, grayscale=False, size=112, use_scale=True):
-    # TODO: crop and transform img_at img_path with MTCNN
     if grayscale:
         img = cv2.imread(img_path, 0)
         c = 1
@@ -271,13 +266,6 @@ def process_img(img_path, grayscale=False, size=112, use_scale=True):
         else:
             img = cv2.imread(img_path)[:, :, ::-1]
         c = 3
-
-    # Detect faces &  Crop
-    boxes, _ = mtcnn.detect(img)
-    if boxes is not None:
-        box = boxes[0]
-        x1, y1, x2, y2 = map(int, box)
-        img = img[y1:y2, x1:x2]
 
     img = cv2.resize(img, (size, size))
     img = img.reshape((size, size, c))
@@ -313,7 +301,7 @@ def perform_val_color_images_transmatcher(
     N = 6000
     pair_list = "lfw_test_pair.txt"
     # data_root = '/home/hai/datasets/lfw_112'
-    data_root = "/home/hai/workspace/InsightFace-v2/data/lfw_crop_112"
+    data_root = "/home/jeans/internship/resources/datasets/lfw-MTCNN-128x128"  # "/home/hai/workspace/InsightFace-v2/data/lfw_crop_112"
     # batch1 = np.zeros([batch_size, embedding_size])
     # batch2 = np.zeros([batch_size, embedding_size])
     dist = np.zeros([N, 1])
@@ -379,7 +367,7 @@ def perform_val_emd_color_images(
 
     if target == "lfw":
         pair_list = "lfw_test_pair.txt"
-        data_root = "/home/hai/workspace/InsightFace-v2/data/lfw_crop_112"
+        data_root = "/home/jeans/internship/resources/datasets/lfw-MTCNN-128x128"
     elif target == "talfw":
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
@@ -468,7 +456,7 @@ def perform_val_color_images_hybrid_vit(
     embeddings = np.zeros([2 * N, embedding_size])
     if target == "lfw":
         pair_list = "lfw_test_pair.txt"
-        data_root = "/home/hai/workspace/InsightFace-v2/data/lfw_crop_112"
+        data_root = "/home/jeans/internship/resources/datasets/lfw-MTCNN-128x128"
     elif target == "glfw":
         pair_list = "glfw_test_pair.txt"
         data_root = "/home/hai/workspace/lfw-align-128-glass"
@@ -545,7 +533,7 @@ def perform_val_color_images(
     embeddings = np.zeros([2 * N, embedding_size])
     if target == "lfw":
         pair_list = "lfw_test_pair.txt"
-        data_root = "/home/hai/workspace/InsightFace-v2/data/lfw_crop_112"
+        data_root = "/home/jeans/internship/resources/datasets/lfw-MTCNN-128x128"
     elif target == "talfw":
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
@@ -619,7 +607,7 @@ def perform_val_color_images_cls(
     embeddings = np.zeros([2 * N, embedding_size])
     if target == "lfw":
         pair_list = "lfw_test_pair.txt"
-        data_root = "/home/hai/workspace/InsightFace-v2/data/lfw_crop_112"
+        data_root = "/home/jeans/internship/resources/datasets/lfw-MTCNN-128x128"
     elif target == "talfw":
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
@@ -692,7 +680,7 @@ def perform_val_resnet_color_images(
 
     if target == "lfw":
         pair_list = "lfw_test_pair.txt"
-        data_root = "/home/hai/workspace/InsightFace-v2/data/lfw_crop_112"
+        data_root = "/home/jeans/internship/resources/datasets/lfw-MTCNN-128x128"
     elif target == "talfw":
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
