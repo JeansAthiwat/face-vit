@@ -37,7 +37,7 @@ def main(args):
         providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
     )
 
-    model.prepare(ctx_id=0, det_thresh=0.15, det_size=(640, 640))
+    model.prepare(ctx_id=0, det_thresh=0.5, det_size=(640, 640))
 
     print("=" * 60)
     print("model path: {}".format(model_name))
