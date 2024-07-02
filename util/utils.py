@@ -2,6 +2,9 @@ import torch
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 
+import onnxruntime as ort
+import os
+
 from .verification import (
     evaluate,
     evaluate_transmatcher,
@@ -544,8 +547,8 @@ def perform_val_color_images(
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
     else:
-        pair_list = "/home/hai/datasets/MLFW/pairs.txt"
-        data_root = "/home/hai/datasets/MLFW/aligned"
+        pair_list = "/home/jeans/internship/resources/datasets/MLFW/pairs.txt"
+        data_root = "/home/jeans/internship/resources/datasets/MLFW/aligned"
 
     with open(pair_list, "r") as fd:
         for i, line in enumerate(fd):
@@ -618,8 +621,8 @@ def perform_val_color_images_cls(
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
     else:
-        pair_list = "/home/hai/datasets/MLFW/pairs.txt"
-        data_root = "/home/hai/datasets/MLFW/aligned"
+        pair_list = "/home/jeans/internship/resources/datasets/MLFW/pairs.txt"
+        data_root = "/home/jeans/internship/resources/datasets/MLFW/aligned"
 
     with open(pair_list, "r") as fd:
         for i, line in enumerate(fd):
@@ -1048,37 +1051,45 @@ def perform_val_buffalo(
         pair_list = "/home/jeans/internship/resources/datasets/MLFW/pairs.txt"
         data_root = "/home/jeans/internship/resources/datasets/MLFW/aligned"
 
+    model, input_name = init_model_onnx()
+
     with open(pair_list, "r") as fd:
         for i, line in enumerate(fd):
             line = line.strip()
             splits = line.split()
+            if extract_only:
 
-            img_path = os.path.join(data_root, splits[0])
-            img1 = cv2.imread(img_path)
+                img_path = os.path.join(data_root, splits[0])
+                img1 = preprocess_img_onnx(img_path)
+                output1 = model.run(None, {input_name: img1})[0][0]
 
-            output1 = backbone.extract(img1)[0].embedding
-            breakpoint()
-            try:
+                img_path = os.path.join(data_root, splits[1])
+                img2 = preprocess_img_onnx(img_path)
+                output2 = model.run(None, {input_name: img2})[0][0]
+            else:
                 img_path = os.path.join(data_root, splits[0])
                 img1 = cv2.imread(img_path)
-                breakpoint()
-                output1 = backbone.extract(img1)[0].embedding
-                breakpoint()
-            except:
-                output1 = torch.zeros(512, dtype=torch.float32)
-                print(
-                    f"cant detect face1 random the embeddings (FIX LATER): {output1.shape}"
-                )
 
-            try:
-                img_path = os.path.join(data_root, splits[1])
-                img2 = cv2.imread(img_path)
-                output2 = backbone.extract(img2)[0].embedding
-            except:
-                output2 = torch.zeros(512, dtype=torch.float32)
-                print(
-                    f"cant detect face2 random the embeddings (FIX LATER): {output2.shape}"
-                )
+                output1 = backbone.extract(img1)[0].embedding
+                try:
+                    img_path = os.path.join(data_root, splits[0])
+                    img1 = cv2.imread(img_path)
+                    output1 = backbone.extract(img1)[0].embedding
+                except:
+                    output1 = torch.zeros(512, dtype=torch.float32)
+                    print(
+                        f"cant detect face1 random the embeddings (FIX LATER): {output1.shape}"
+                    )
+
+                try:
+                    img_path = os.path.join(data_root, splits[1])
+                    img2 = cv2.imread(img_path)
+                    output2 = backbone.extract(img2)[0].embedding
+                except:
+                    output2 = torch.zeros(512, dtype=torch.float32)
+                    print(
+                        f"cant detect face2 random the embeddings (FIX LATER): {output2.shape}"
+                    )
             # print(output1.shape)
             # print(output1.shape)
             embeddings[2 * i] = output1
@@ -1116,3 +1127,29 @@ def perform_val_buffalo(
         roc_curve_tensor,
         accuracy,
     )
+
+
+def preprocess_img_onnx(file_path: str, mode: str = None):
+    img = cv2.imread(file_path)  # Read the image using OpenCV
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB
+    img = cv2.resize(img, (112, 112))  # Resize to 112x112
+    img = img / 255.0  # Normalize to [0, 1]
+    img = np.transpose(img, (2, 0, 1))  # Transpose to (C, H, W)
+    img = np.expand_dims(img, axis=0)
+    img = img.astype(np.float32)
+    return img
+
+
+def init_model_onnx(
+    model_path: str = "/home/jeans/internship/face-vit/results/models/buffalo_l/w600k_r50.onnx",
+):
+    # Initialize the ONNX Runtime session
+    try:
+        ort_session = ort.InferenceSession(
+            model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+        )
+        input_name = ort_session.get_inputs()[0].name
+    except Exception as e:
+        raise e
+
+    return ort_session, input_name

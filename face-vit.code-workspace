@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../wild-face-qmul"
+		},
+		{
+			"path": "../face-recog"
+		}
+	],
+	"settings": {}
+}

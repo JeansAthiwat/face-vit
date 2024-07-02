@@ -41,9 +41,9 @@ MY_CONFIG = {
     },
     "H2L": {
         "DEPTH": 1,
-        "HEADS": 4,
+        "HEADS": 6,
         "CHANNELS": 1,
-        "ISHYBRID": True,
+        "ISHYBRID": False,
         "USE_SCALE": True,
         "GRAYSCALE": True,
         "USE_CLS": False,
@@ -88,7 +88,7 @@ def main(args):
     name = args.name  #'talfw' #'mlfw' # # # #'glfw'  # #
 
     if isHybrid == False:
-        model = ViT_face_model(
+        model = ViT_face_model(  # THIS IS THE ONE H2L or H2
             loss_type="ArcFace",
             GPU_ID=["0"],
             num_class=NUM_CLASS,
@@ -110,7 +110,7 @@ def main(args):
             remove_sep=False,
         )
     else:
-        model = Hybrid_ViT(
+        model = Hybrid_ViT(  # THIS IS THE ONE H1
             loss_type=HEAD_NAME,
             GPU_ID=GPU_ID,
             num_class=NUM_CLASS,

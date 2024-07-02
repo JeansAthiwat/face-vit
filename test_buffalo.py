@@ -14,6 +14,8 @@ import numpy as np
 import insightface
 from insightface.app import FaceAnalysis
 from insightface.data import get_image as ins_get_image
+import onnxruntime as ort
+import os
 
 
 def main(args):
@@ -22,12 +24,13 @@ def main(args):
     torch.backends.cudnn.benchmark = True
     NUM_CLASS = 10575  # for LFW # 93431 for casia
 
+    extract_only = True
     channels = 1
     use_scale = True
     grayscale = True
 
     out_dim = 512
-    model_name = "buffalo_sc"
+    model_name = "buffalo_l"
 
     name = args.name  #'talfw' #'mlfw' # # # #'glfw'  # #
 
@@ -71,7 +74,7 @@ def main(args):
     )
     breakpoint()
     print("[%s]XNorm: %1.5f" % (name, xnorm))
-    print("[%s]Accuracy(Test-Max): %1.5f+-%1.5f" % (name, accuracy_all))
+    print(accuracy_all)
 
     print("[%s]Accuracy-Flip: %1.5f+-%1.5f" % (name, accuracy, std))
     print("[%s]Best-Threshold: %1.5f" % (name, best_threshold))
