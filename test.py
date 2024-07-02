@@ -13,23 +13,77 @@ from util.utils import (
     AverageMeter,
 )
 
+MY_CONFIG = {
+    # unusable
+    "V": {
+        "DEPTH": 2,
+        "HEADS": 8,
+        "CHANNELS": 1,
+        "ISHYBRID": True,
+        "USE_SCALE": True,
+        "GRAYSCALE": True,
+        "USE_CLS": True,
+        "REMOVE_POS": False,
+        "USE_FACE_LOSS": False,
+        "NO_FACE_MODEL": True,
+    },
+    "H2": {
+        "DEPTH": 2,
+        "HEADS": 1,
+        "CHANNELS": 1,
+        "ISHYBRID": False,
+        "USE_SCALE": True,
+        "GRAYSCALE": True,
+        "USE_CLS": True,
+        "REMOVE_POS": True,
+        "USE_FACE_LOSS": False,
+        "NO_FACE_MODEL": False,
+    },
+    "H2L": {
+        "DEPTH": 1,
+        "HEADS": 2,
+        "CHANNELS": 1,
+        "ISHYBRID": True,
+        "USE_SCALE": True,
+        "GRAYSCALE": True,
+        "USE_CLS": False,
+        "REMOVE_POS": False,
+        "USE_FACE_LOSS": True,
+        "NO_FACE_MODEL": False,
+    },
+}
+
+preset = "V"  # ["C", "V", "H1", "H2", "H2L", "D"]
+
 
 def main(args):
     GPU_ID = [0]
     device = torch.device("cuda:%d" % GPU_ID[0])
     torch.backends.cudnn.benchmark = True
     NUM_CLASS = 10575  # for LFW # 93431 for casia
-    depth_vit = 1
-    heads = 4
-    channels = 1
+
+    depth_vit = MY_CONFIG[preset]["DEPTH"]
+    heads = MY_CONFIG[preset]["HEADS"]
+    channels = MY_CONFIG[preset]["CHANNELS"]
+    isHybrid = MY_CONFIG[preset]["ISHYBRID"]
+    use_scale = MY_CONFIG[preset]["USE_SCALE"]
+    grayscale = MY_CONFIG[preset]["GRAYSCALE"]
+    use_cls = MY_CONFIG[preset]["USE_CLS"]
+    remove_pos = MY_CONFIG[preset]["REMOVE_POS"]
+
+    # depth_vit = 1
+    # heads = 4
+    # channels = 1
+    # isHybrid = True  # if isHybrid -> use_scale = T and gray_scale = T
+    # use_scale = True
+    # grayscale = True
+    # use_cls = False
+
     size = 128  # 112
     out_dim = 512
-    isHybrid = True  # if isHybrid -> use_scale = T and gray_scale = T
-    use_scale = True
-    grayscale = True
 
-    use_face_loss = True
-    use_cls = False
+    use_face_loss = MY_CONFIG[preset]["USE_FACE_LOSS"]
+    no_face_model = MY_CONFIG[preset]["NO_FACE_MODEL"]
     HEAD_NAME = "ArcFace"
     name = args.name  #'talfw' #'mlfw' # # # #'glfw'  # #
 
@@ -40,7 +94,7 @@ def main(args):
             num_class=NUM_CLASS,
             use_cls=use_cls,
             use_face_loss=use_face_loss,
-            no_face_model=False,
+            no_face_model=no_face_model,
             image_size=112,
             patch_size=8,
             ac_patch_size=12,
@@ -72,7 +126,7 @@ def main(args):
             dropout=0.1,
             emb_dropout=0.1,
             out_dim=out_dim,
-            remove_pos=False,
+            remove_pos=remove_pos,
         )
 
     # model = ViT_face(loss_type = HEAD_NAME,
@@ -100,9 +154,9 @@ def main(args):
     # model_path = 'results/ViT-face_webface_2m_depth_1_head_8_resnet18_1024fc_lr1e5/best.pth'
 
     if use_cls:
-        # model_path = 'results/ViT-P8S8_2-image_webface_2m_arcface_s1_depth_1_head_1_use_cls/best.pth'
-        # model_path = 'results/ViT-P8S8_2-image_webface_2m_arcface_resnet18_s1_depth_1_head_1_use_cls/best.pth'
-        # model_path = 'results/ViT-P8S8_2-image_webface_2m_arcface_s1_depth_1_head_2_use_cls/best.pth'
+        # model_path = "results/ViT-P8S8_2-image_webface_2m_arcface_s1_depth_1_head_1_use_cls/best.pth"
+        # model_path = "results/ViT-P8S8_2-image_webface_2m_arcface_resnet18_s1_depth_1_head_1_use_cls/best.pth"
+        # model_path = "results/ViT-P8S8_2-image_webface_2m_arcface_s1_depth_1_head_2_use_cls/best.pth"
         model_path = "results/ViT-P8S8_2-image_webface_2m_arcface_s1_depth_2_head_1_use_cls/best.pth"
     else:
         if isHybrid:
@@ -113,7 +167,7 @@ def main(args):
             model_path = "results/ViT-P8S8_2-image_webface_2m_arcface_resnet18_s1_depth_{}_head_{}_LFW_lr1e5/best.pth".format(
                 depth_vit, heads
             )
-
+    print("=" * 60)
     print("model path: {}".format(model_path))
     # model_path = 'results/ViT-face_webface_arcface_resnet18_gray_depth_1_head_1_lr_1e-5_fc1024_dropout_0_LFW/best.pth'
     # face_model_moopath =  'pretrained/resnet18_110.pth'
@@ -144,10 +198,19 @@ def main(args):
     # vers = get_val_data(EVAL_PATH, TARGET)
 
     print(
-        "Process [{}] dataset, model depth={}, heads={}, emb={}".format(
-            name, depth_vit, heads, EMBEDDING_SIZE
+        "Process [{}] dataset, model \ndepth={}, heads={}, emb={}, channels={}, \nisHybrid={}, use_scale={}, grayscale={}, use_cls={}".format(
+            name,
+            depth_vit,
+            heads,
+            EMBEDDING_SIZE,
+            channels,
+            isHybrid,
+            use_scale,
+            grayscale,
+            use_cls,
         )
     )
+    print("=" * 60)
     # name, data_set, issame = vers[0]
     # accuracy, std, xnorm, best_threshold, roc_curve = perform_val(MULTI_GPU, device, EMBEDDING_SIZE, BATCH_SIZE, model, data_set, issame)
 
