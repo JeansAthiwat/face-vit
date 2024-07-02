@@ -5,15 +5,15 @@ import sys
 from models import ViT_face
 import argparse
 from util.utils import (
-    get_val_data,
-    perform_val_color_images_cls,
-    perform_val_resnet_color_images,
-    perform_val_color_images,
-    perform_val_color_images_hybrid_vit,
+    perform_val_buffalo,
     AverageMeter,
 )
 
+import cv2
+import numpy as np
 import insightface
+from insightface.app import FaceAnalysis
+from insightface.data import get_image as ins_get_image
 
 
 def main(args):
@@ -27,13 +27,20 @@ def main(args):
     grayscale = True
 
     out_dim = 512
-    model_path = "XXX"
+    model_name = "buffalo_sc"
+
     name = args.name  #'talfw' #'mlfw' # # # #'glfw'  # #
 
-    model = ""
+    model = FaceAnalysis(
+        name=model_name,
+        root="/home/jeans/internship/face-vit/results",
+        providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
+    )
+
+    model.prepare(ctx_id=0, det_size=(640, 640))
 
     print("=" * 60)
-    print("model path: {}".format(model_path))
+    print("model path: {}".format(model_name))
 
     BATCH_SIZE = 64
     EMBEDDING_SIZE = out_dim
@@ -59,10 +66,7 @@ def main(args):
         MULTI_GPU,
         device,
         EMBEDDING_SIZE,
-        BATCH_SIZE,
         model,
-        grayscale=grayscale,
-        use_scale=use_scale,
         target=name,
     )
 

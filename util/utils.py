@@ -2,7 +2,7 @@ import torch
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 
-from .verification import evaluate, evaluate_transmatcher, evaluate_emd
+from .verification import evaluate, evaluate_transmatcher, evaluate_emd, calculate_roc_cosim
 
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -1012,3 +1012,94 @@ def train_accuracy(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
 
     return res[0]
+
+
+def perform_val_buffalo(
+    multi_gpu,
+    device,
+    embedding_size,
+    backbone,
+    size=112,
+    nrof_folds=10,
+    target="lfw",
+):
+
+    # run inference on onnx
+
+    embeddings_list = []
+    issame = []
+    N = 6000
+    embeddings = np.zeros([2 * N, embedding_size])
+
+    if target == "lfw":
+        pair_list = "lfw_test_pair.txt"
+        data_root = "/home/jeans/internship/resources/datasets/lfw"
+    elif target == "talfw":
+        pair_list = "lfw_test_pair.txt"
+        data_root = "/home/hai/datasets/cropped_TALFW_128x128"
+    else:
+        pair_list = "/home/hai/datasets/MLFW/pairs.txt"
+        data_root = "/home/hai/datasets/MLFW/aligned"
+
+    with open(pair_list, "r") as fd:
+        for i, line in enumerate(fd):
+            line = line.strip()
+            splits = line.split()
+
+            try:
+                img_path = os.path.join(data_root, splits[0])
+                img1 = cv2.imread(img_path)
+                output1 = backbone.get(img1)[0].embedding
+            except:
+                output1 = torch.zeros(512, dtype=torch.float32)
+                print(
+                    f"cant detect face1 random the embeddings (FIX LATER): {output1.shape}"
+                )
+
+            try:
+                img_path = os.path.join(data_root, splits[1])
+                img2 = cv2.imread(img_path)
+                output2 = backbone.get(img2)[0].embedding
+            except:
+                output2 = torch.zeros(512, dtype=torch.float32)
+                print(
+                    f"cant detect face2 random the embeddings (FIX LATER): {output2.shape}"
+                )
+            # print(output1.shape)
+            # print(output1.shape)
+            embeddings[2 * i] = output1
+            embeddings[2 * i + 1] = output2
+            issame.append(float(splits[-1]))
+
+    _xnorm = 0.0
+    embeddings = sklearn.preprocessing.normalize(embeddings)
+    print(embeddings.shape)
+
+    #############
+    thresholds = np.arange(0, 1, 0.01)
+    embeddings1 = embeddings[0::2]
+    embeddings2 = embeddings[1::2]
+
+    tpr, fpr, accuracy, best_thresholds = calculate_roc_cosim(
+        thresholds,
+        embeddings1,
+        embeddings2,
+        np.asarray(issame),
+        nrof_folds=nrof_folds,
+        pca=False,
+    )
+
+    #############
+
+    tpr, fpr, accuracy, best_thresholds = evaluate(embeddings, issame, nrof_folds)
+    # buf = gen_plot(fpr, tpr)
+    # roc_curve = Image.open(buf)
+    # roc_curve_tensor = transforms.ToTensor()(roc_curve)
+    return 0
+    return (
+        accuracy.mean(),
+        accuracy.std(),
+        _xnorm,
+        best_thresholds.mean(),
+        roc_curve_tensor,
+    )
