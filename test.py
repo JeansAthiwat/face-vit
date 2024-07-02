@@ -41,7 +41,7 @@ MY_CONFIG = {
     },
     "H2L": {
         "DEPTH": 1,
-        "HEADS": 2,
+        "HEADS": 4,
         "CHANNELS": 1,
         "ISHYBRID": True,
         "USE_SCALE": True,
@@ -53,7 +53,7 @@ MY_CONFIG = {
     },
 }
 
-preset = "V"  # ["C", "V", "H1", "H2", "H2L", "D"]
+preset = "H2L"  # ["C", "V", "H1", "H2", "H2L", "D"]
 
 
 def main(args):

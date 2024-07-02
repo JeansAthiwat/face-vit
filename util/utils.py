@@ -470,8 +470,8 @@ def perform_val_color_images_hybrid_vit(
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
     else:
-        pair_list = "/home/hai/datasets/MLFW/pairs.txt"
-        data_root = "/home/hai/datasets/MLFW/aligned"
+        pair_list = "/home/jeans/internship/resources/datasets/MLFW/pairs.txt"
+        data_root = "/home/jeans/internship/resources/datasets/MLFW/aligned"
 
     with open(pair_list, "r") as fd:
         for i, line in enumerate(fd):
@@ -1044,8 +1044,8 @@ def perform_val_buffalo(
         pair_list = "lfw_test_pair.txt"
         data_root = "/home/hai/datasets/cropped_TALFW_128x128"
     else:
-        pair_list = "/home/hai/datasets/MLFW/pairs.txt"
-        data_root = "/home/hai/datasets/MLFW/aligned"
+        pair_list = "/home/jeans/internship/resources/datasets/MLFW/pairs.txt"
+        data_root = "/home/jeans/internship/resources/datasets/MLFW/aligned"
 
     with open(pair_list, "r") as fd:
         for i, line in enumerate(fd):
@@ -1078,6 +1078,7 @@ def perform_val_buffalo(
             issame.append(float(splits[-1]))
 
     _xnorm = 0.0
+    breakpoint()
     embeddings = sklearn.preprocessing.normalize(embeddings)
     print(embeddings.shape)
 

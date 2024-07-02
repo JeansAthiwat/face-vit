@@ -27,7 +27,7 @@ def main(args):
     grayscale = True
 
     out_dim = 512
-    model_name = "buffalo_l"
+    model_name = "buffalo_sc"
 
     name = args.name  #'talfw' #'mlfw' # # # #'glfw'  # #
 
