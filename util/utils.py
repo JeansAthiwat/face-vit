@@ -2,7 +2,13 @@ import torch
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 
-from .verification import evaluate, evaluate_transmatcher, evaluate_emd, calculate_roc_cosim
+from .verification import (
+    evaluate,
+    evaluate_transmatcher,
+    evaluate_emd,
+    calculate_roc_cosim,
+    calculate_roc,
+)
 
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -1080,26 +1086,24 @@ def perform_val_buffalo(
     embeddings1 = embeddings[0::2]
     embeddings2 = embeddings[1::2]
 
-    tpr, fpr, accuracy, best_thresholds = calculate_roc_cosim(
+    tpr, fpr, accuracy, best_thresholds = calculate_roc(
         thresholds,
         embeddings1,
         embeddings2,
         np.asarray(issame),
         nrof_folds=nrof_folds,
-        pca=False,
     )
 
     #############
 
-    tpr, fpr, accuracy, best_thresholds = evaluate(embeddings, issame, nrof_folds)
-    # buf = gen_plot(fpr, tpr)
-    # roc_curve = Image.open(buf)
-    # roc_curve_tensor = transforms.ToTensor()(roc_curve)
-    return 0
+    buf = gen_plot(fpr, tpr)
+    roc_curve = Image.open(buf)
+    roc_curve_tensor = transforms.ToTensor()(roc_curve)
     return (
         accuracy.mean(),
         accuracy.std(),
         _xnorm,
         best_thresholds.mean(),
         roc_curve_tensor,
+        accuracy,
     )

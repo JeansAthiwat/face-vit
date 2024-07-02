@@ -372,29 +372,11 @@ def calculate_roc_cosim(
     indices = np.arange(nrof_pairs)
     # print('pca', pca)
 
-    if pca == 0:
-        diff = np.subtract(embeddings1, embeddings2)
-        dist = np.sum(np.square(diff), 1)
-        # dist = pdist(np.vstack([embeddings1, embeddings2]), 'cosine')
+    dist = pdist(np.vstack([embeddings1, embeddings2]), "cosine")
 
     for fold_idx, (train_set, test_set) in enumerate(k_fold.split(indices)):
-        # print('train_set', train_set)
-        # print('test_set', test_set)
-        if pca > 0:
-            print("doing pca on", fold_idx)
-            embed1_train = embeddings1[train_set]
-            embed2_train = embeddings2[train_set]
-            _embed_train = np.concatenate((embed1_train, embed2_train), axis=0)
-            # print(_embed_train.shape)
-            pca_model = PCA(n_components=pca)
-            pca_model.fit(_embed_train)
-            embed1 = pca_model.transform(embeddings1)
-            embed2 = pca_model.transform(embeddings2)
-            embed1 = sklearn.preprocessing.normalize(embed1)
-            embed2 = sklearn.preprocessing.normalize(embed2)
-            # print(embed1.shape, embed2.shape)
-            diff = np.subtract(embed1, embed2)
-            dist = np.sum(np.square(diff), 1)
+        # print("train_set", train_set)
+        # print("test_set", test_set)
 
         # Find the best threshold for the fold
         acc_train = np.zeros((nrof_thresholds))
@@ -402,13 +384,16 @@ def calculate_roc_cosim(
             _, _, acc_train[threshold_idx] = calculate_accuracy(
                 threshold, dist[train_set], actual_issame[train_set]
             )
+
         best_threshold_index = np.argmax(acc_train)
         #         print('best_threshold_index', best_threshold_index, acc_train[best_threshold_index])
         best_thresholds[fold_idx] = thresholds[best_threshold_index]
+
         for threshold_idx, threshold in enumerate(thresholds):
             tprs[fold_idx, threshold_idx], fprs[fold_idx, threshold_idx], _ = (
                 calculate_accuracy(threshold, dist[test_set], actual_issame[test_set])
             )
+
         _, _, accuracy[fold_idx] = calculate_accuracy(
             thresholds[best_threshold_index], dist[test_set], actual_issame[test_set]
         )

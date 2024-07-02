@@ -27,7 +27,7 @@ def main(args):
     grayscale = True
 
     out_dim = 512
-    model_name = "buffalo_sc"
+    model_name = "buffalo_l"
 
     name = args.name  #'talfw' #'mlfw' # # # #'glfw'  # #
 
@@ -37,7 +37,7 @@ def main(args):
         providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
     )
 
-    model.prepare(ctx_id=0, det_size=(640, 640))
+    model.prepare(ctx_id=0, det_thresh=0.15, det_size=(640, 640))
 
     print("=" * 60)
     print("model path: {}".format(model_name))
@@ -62,15 +62,17 @@ def main(args):
 
     # accuracy, std, xnorm, best_threshold, roc_curve = perform_val_resnet_color_images(MULTI_GPU, device, EMBEDDING_SIZE, BATCH_SIZE, model.face_model, grayscale=True, size=size, use_scale=use_scale, target=name)
 
-    accuracy, std, xnorm, best_threshold, roc_curve = perform_val_buffalo(
+    accuracy, std, xnorm, best_threshold, roc_curve, accuracy_all = perform_val_buffalo(
         MULTI_GPU,
         device,
         EMBEDDING_SIZE,
         model,
         target=name,
     )
-
+    breakpoint()
     print("[%s]XNorm: %1.5f" % (name, xnorm))
+    print("[%s]Accuracy(Test-Max): %1.5f+-%1.5f" % (name, accuracy_all))
+
     print("[%s]Accuracy-Flip: %1.5f+-%1.5f" % (name, accuracy, std))
     print("[%s]Best-Threshold: %1.5f" % (name, best_threshold))
 
