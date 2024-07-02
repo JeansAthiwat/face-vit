@@ -1028,6 +1028,7 @@ def perform_val_buffalo(
     size=112,
     nrof_folds=10,
     target="lfw",
+    extract_only=True,
 ):
 
     # run inference on onnx
@@ -1052,10 +1053,17 @@ def perform_val_buffalo(
             line = line.strip()
             splits = line.split()
 
+            img_path = os.path.join(data_root, splits[0])
+            img1 = cv2.imread(img_path)
+
+            output1 = backbone.extract(img1)[0].embedding
+            breakpoint()
             try:
                 img_path = os.path.join(data_root, splits[0])
                 img1 = cv2.imread(img_path)
-                output1 = backbone.get(img1)[0].embedding
+                breakpoint()
+                output1 = backbone.extract(img1)[0].embedding
+                breakpoint()
             except:
                 output1 = torch.zeros(512, dtype=torch.float32)
                 print(
@@ -1065,7 +1073,7 @@ def perform_val_buffalo(
             try:
                 img_path = os.path.join(data_root, splits[1])
                 img2 = cv2.imread(img_path)
-                output2 = backbone.get(img2)[0].embedding
+                output2 = backbone.extract(img2)[0].embedding
             except:
                 output2 = torch.zeros(512, dtype=torch.float32)
                 print(
