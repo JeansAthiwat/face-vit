@@ -1,7 +1,6 @@
 import os
 from facenet_pytorch import MTCNN
 from PIL import Image
-import torchvision.transforms.functional as TF
 
 # Define the directories
 input_dir = "/home/jeans/internship/resources/datasets/lfw"  # Replace with your LFW dataset directory
@@ -26,14 +25,18 @@ for root, dirs, files in os.walk(input_dir):
             img = Image.open(img_path)
 
             # Detect and crop face
-            face_tensor = mtcnn(img)
+            boxes, _ = mtcnn.detect(img)
 
             # Check if a face is detected
-            if face_tensor is not None:
-                # Convert tensor to PIL image
-                cropped_img = TF.to_pil_image(face_tensor.squeeze(0))
+            if boxes is not None:
+                # Use the first detected face
+                box = boxes[0]
+                left, top, right, bottom = map(int, box)
+                cropped_img = img.crop((left, top, right, bottom))
+                cropped_img = cropped_img.resize((128, 128), Image.LANCZOS)
             else:
                 # If no face is detected, resize the original image
+                print("no face detected use origin resized")
                 cropped_img = img.resize((128, 128), Image.LANCZOS)
 
             # Save the processed image to corresponding output directory
